@@ -5,7 +5,7 @@ REPO_DIR="/data/opt/instancerepo/Infraon"
 PULL_SCRIPT="/opt/scripts/product/pull_infraon.sh"
 SCREEN_NAME="env"
 LOG_FILE="/root/env.log"
-RUN_DIR="infraon_service/infraon_devops"
+RUN_DIR="infraon_devops"
 RUN_SCRIPT="runserver.sh"
 
 # Clear old logs
