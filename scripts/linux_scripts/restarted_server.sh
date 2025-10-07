@@ -40,5 +40,7 @@ else
     pm2 restart "Infraon backend Service"
 fi
 
+cd /opt/EIMS/scripts/linux_scripts/product
+
 echo "All tasks completed successfully."
 

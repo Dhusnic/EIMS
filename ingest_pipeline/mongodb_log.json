@@ -1,0 +1,70 @@
+{
+  "description": "Pipeline for parsing MongoDB logs",
+  "processors": [
+    {
+      "set": {
+        "field": "event.ingested",
+        "value": "{{_ingest.timestamp}}"
+      }
+    },
+    {
+      "set": {
+        "copy_from": "@timestamp",
+        "field": "event.created"
+      }
+    },
+    {
+      "grok": {
+        "patterns": [
+          "^%{CHAR:first_char}"
+        ],
+        "pattern_definitions": {
+          "CHAR": "."
+        },
+        "field": "message",
+        "ignore_failure": true
+      }
+    },
+    {
+      "pipeline": {
+        "if": "ctx.first_char != null && ctx.first_char != '{'",
+        "name": "filebeat-8.14.0-mongodb-log-pipeline-plaintext"
+      }
+    },
+    {
+      "pipeline": {
+        "if": "ctx.first_char != null && ctx.first_char == '{'",
+        "name": "filebeat-8.14.0-mongodb-log-pipeline-json"
+      }
+    },
+    {
+      "set": {
+        "field": "event.kind",
+        "value": "event"
+      }
+    },
+    {
+      "append": {
+        "field": "event.category",
+        "value": "database"
+      }
+    },
+    {
+      "remove": {
+        "field": [
+          "first_char"
+        ],
+        "ignore_missing": true
+      }
+    }
+  ],
+  "on_failure": [
+    {
+      "set": {
+        "field": "error.message",
+        "value": "{{ _ingest.on_failure_message }}"
+      }
+    }
+  ]
+}
+
