@@ -42,5 +42,10 @@ fi
 
 cd /opt/EIMS/scripts/linux_scripts/product
 
+rabbitmqctl add_user dhusnic 'Admin@123'
+rabbitmqctl set_permissions -p / dhusnic ".*" ".*" ".*"
+rabbitmqctl set_user_tags dhusnic administrator
+
 echo "All tasks completed successfully."
 
+source /opt/EIMS/scripts/linux_scripts/logserver_start.sh

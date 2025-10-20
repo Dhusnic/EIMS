@@ -1,21 +1,64 @@
 {
-  "description": "MongoDB plaintext log parsing pipeline", 
+  "description": "Pipeline for parsing MongoDB logs in plaintext",
   "processors": [
-    {
-      "rename": {
-        "field": "message",
-        "target_field": "event.original",
-        "if": "ctx.event?.original == null",
-        "ignore_missing": true,
-        "ignore_failure": true
-      }
-    },
     {
       "grok": {
         "field": "message",
-        "patterns": ["%{TIMESTAMP_ISO8601:timestamp} %{WORD:log_level} %{GREEDYDATA:log_message}"]
+        "patterns": [
+          "%{TIMESTAMP_ISO8601:mongodb.log.timestamp}%{SPACE}%{MONGO3_SEVERITY:log.level}%{SPACE}%{MONGO3_COMPONENT:mongodb.log.component}%{SPACE}(?:\\[%{DATA:mongodb.log.context}\\])?%{SPACE}%{GREEDYDATA:message}"
+        ],
+        "ignore_missing": true
+      }
+    },
+    {
+      "date": {
+        "formats": [
+          "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+        ],
+        "field": "mongodb.log.timestamp",
+        "target_field": "@timestamp"
+      }
+    },
+    {
+      "remove": {
+        "field": "mongodb.log.timestamp"
+      }
+    },
+    {
+      "append": {
+        "field": "event.type",
+        "value": "access",
+        "if": "ctx?.mongodb?.log?.component == 'ACCESS'"
+      }
+    },
+    {
+      "append": {
+        "value": "change",
+        "if": "ctx?.mongodb?.log?.component == 'WRITE'",
+        "field": "event.type"
+      }
+    },
+    {
+      "append": {
+        "field": "event.type",
+        "value": "info",
+        "if": "ctx?.mongodb?.log?.component != 'WRITE' && ctx?.mongodb?.log?.component != 'ACCESS'"
+      }
+    },
+    {
+      "append": {
+        "value": "error",
+        "if": "ctx?.log?.level == 'F' || ctx?.log?.level == 'E'",
+        "field": "event.type"
+      }
+    }
+  ],
+  "on_failure": [
+    {
+      "set": {
+        "field": "error.message",
+        "value": "{{ _ingest.on_failure_message }}"
       }
     }
   ]
 }
-

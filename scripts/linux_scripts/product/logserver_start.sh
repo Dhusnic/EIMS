@@ -24,6 +24,8 @@ fi
 
 # Step 5: Clear terminal
 clear
+
+tail -f "$LOG_FILE"
 echo "Terminal cleared." >> "$LOG_FILE"
 
 echo "========== Script Execution Complete ==========" >> "$LOG_FILE"
